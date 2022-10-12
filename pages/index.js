@@ -31,15 +31,17 @@ export default function Home() {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState();
   const [process, setProcess] = useState(0);
-  const [invoiceId, setInvoiceId] = useState('')
-  const [qrImage, setQrImage] = useState('')
-  const [count, setCount] = useState(0)
-  const [done, setDone] = useState(false)
-  const changeElfc = ({ value }) => {
-    setValue((value * elfc).toFixed(3));
+  const [invoiceId, setInvoiceId] = useState("");
+  const [qrImage, setQrImage] = useState("");
+  const [count, setCount] = useState(0);
+  const [done, setDone] = useState(false);
+  const changeElfc = ({ e }) => {
+    console.log(elfc, e);
+    setValue((elfc * e).toFixed(3));
   };
-  const change = ({ value }) => {
-    setEvalue((value / elfc).toFixed(3));
+  const change = ({ e }) => {
+    console.log(e);
+    setEvalue((e / elfc).toFixed(3));
   };
 
   // TODO: Add SDKs for Firebase products that you want to use
@@ -72,6 +74,9 @@ export default function Home() {
       })
       .then((res) => setProcess(33));
   };
+  function getBase64Img(item) {
+    return `data:image/png;base64,${item}`;
+  }
 
   const verify = () => {
     console.log(code);
@@ -80,43 +85,53 @@ export default function Home() {
         confirmationResult
           .confirm(code)
           .then(async (res) => {
-            console.log(res.user);
-            if (res.user) {
-              await axios.post("http://18.167.46.29:5002/payment/qpay", {
-                sender_invoice_no: "1234567",
-                invoice_description: address,
-                amount: value,
-                paymentMethodId: 1,
-                userId: "hjasdfkhu23rj",
-              }).then(async (response) => {
-                
-                let json = JSON.stringify(response.data.data)
-                setInvoiceId(json.invoice_id)
-                setProcess(66);
-                setQrImage(json.qr_image)
-                while(count < 10 || done == false) {
-                  setTimeout(async () =>  {
-                    await axios.post('http://18.167.46.29:5002/payment/qpay/check', {
-                      invoiceId: invoiceId,
-                      paymentMethodId: 1
-                    }).then((r) => (r.data.status == 'pending') ? setCount(count++) : setDone(true))
-                  }, 10000)
-                }
-                if(done == true) {
-                  await axios.post('http://localhost:3001/v1/admin/chargeWallet', {
-                    debitAddress: address,
-                    amount: eValue,
-                    description: "string"
-                  }).then((rs) => {
-                    setProcess(100)
-                  })
-                }
-              });
-              
+            if (res.user && parseFloat(value) > 99) {
+              await axios
+                .post("http://18.167.46.29:5002/payment/qpay", {
+                  sender_invoice_no: "1234567",
+                  invoice_description: address == "" ? "string" : address,
+                  amount: parseFloat(value),
+                  paymentMethodId: 1,
+                  userId: "hjasdfkhu23rj",
+                })
+                .then(async (response) => {
+                  let json = JSON.parse(response.data.data);
+
+                  setInvoiceId(json.invoice_id);
+                  let base64img = getBase64Img(json.qr_image);
+
+                  setQrImage(base64img);
+                  setProcess(66);
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
             }
           })
           .catch((err) => console.log(err));
       }
+  };
+  const chargeWallet = async () => {
+    await axios
+      .post("https://tiny-admin.herokuapp.com/v1/admin/chargeWallet", {
+        debitAddress: address,
+        amount: eValue,
+        description: "string",
+      })
+      .then((rs) => {
+        console.log(rs)
+        setProcess(100);
+      }).catch((err) => {console.log(err)});
+  };
+  const checkBill = async () => {
+    await axios
+      .post("http://18.167.46.29:5002/payment/qpay/check", {
+        invoiceId: invoiceId,
+        paymentMethodId: 1,
+      })
+      .then((r) =>
+        r.data.status == "pending" ? console.log('unpaid'): chargeWallet()
+      );
   };
   const getData = async () => {
     let data = await axios.get("https://dev.elfchain.io/currency/prices");
@@ -229,10 +244,11 @@ export default function Home() {
           </VStack>
         </DefaultForm>
       )}
-      {qrImage != '' && (
+      {qrImage != "" && (
         <DefaultForm elfc={elfc} process={process}>
-          <VStack alignItems={"start"}>
+          <VStack alignItems={"center"}>
             <Image src={qrImage} />
+            <Button onClick={() => checkBill()}>Paid</Button>
           </VStack>
         </DefaultForm>
       )}

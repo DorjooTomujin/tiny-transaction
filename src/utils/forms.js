@@ -78,8 +78,8 @@ export const ChildrenInput = ({
             value={value}
             sx={{ margin: "0 !important" }}
             onChange={(e) => {
-              setValue(e), console.log(value);
-              changeElfc((value = { value }));
+              setValue(e),
+              changeElfc({e});
             }}
           >
             <NumberInputField fontSize={20} pr={0} />
@@ -90,7 +90,7 @@ export const ChildrenInput = ({
             value={value}
             sx={{ margin: "0 !important" }}
             onChange={(e) => {
-              setValue(e), change((value = { value }));
+              setValue(e), change({e});
             }}
           >
             <NumberInputField fontSize={20} pr={0} />
