@@ -27,6 +27,7 @@ const theme = extendTheme({
               {
                 ...activeLabelStyles,
               },
+              
             label: {
               top: -2,
               left: 0,

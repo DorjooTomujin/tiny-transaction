@@ -15,6 +15,7 @@ import {
   Checkbox,
   Link,
   Progress,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 
 export const DefaultForm = ({
@@ -35,6 +36,7 @@ export const DefaultForm = ({
       maxW={"560px"}
       shadow="0px 2px 4px rgba(0, 0, 0, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 4px 5px rgba(0, 0, 0, 0.07)"
       overflow="hidden"
+      
     >
       <Progress value={process} size="xs" colorScheme="pink" />
       <FormLabel px={"40px"} py={"24px"}>
@@ -51,6 +53,7 @@ export const DefaultForm = ({
         </HStack>
         <Divider my={25} />
         {children}
+        
       </FormLabel>
     </FormControl>
   );
@@ -65,6 +68,7 @@ export const ChildrenInput = ({
   setValue,
   changeElfc,
   change,
+ 
 }) => {
   return (
     <HStack pl={3} py={2} bg={"bg.input"} borderRadius={12}>
@@ -78,6 +82,7 @@ export const ChildrenInput = ({
             value={value}
             sx={{ margin: "0 !important" }}
             onChange={(e) => {
+              console.log(e)
               setValue(e),
               changeElfc({e});
             }}
@@ -99,28 +104,35 @@ export const ChildrenInput = ({
       </VStack>
       <Divider orientation="vertical" h={dh} bg="text.label" w="1px" />
       {children}
+      
     </HStack>
   );
 };
 
-export const DefaultInput = ({ lbl, value, setValue, fn }) => {
+export const DefaultInput = ({ lbl, value, setValue, fn ,  alert}) => {
+  
   return (
-    <Box bg={"bg.input"} borderRadius={12} pt={3} w="full">
-      <FormControl variant="floating" id="first-name" isRequired>
+   <Box>
+     <Box bg={"bg.input"} borderRadius={12} pt={3} w="full">
+      <FormControl variant="floating" id="first-name" isRequired  >
         <Input
           placeholder=" "
           border="none"
           _focusVisible={{ border: "none" }}
           fontSize={14}
           value={value}
+          
           onChange={(e) => {
             setValue(e.target.value),
             fn()
           }}
         />
-        {/* It is important that the Label comes after the Control due to css selectors */}
+        
         <FormLabel>{lbl}</FormLabel>
       </FormControl>
+      
     </Box>
+    {alert && <Text ml={4} mt={2} color='red.500'>{alert}</Text>}
+   </Box>
   );
 };

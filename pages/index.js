@@ -35,12 +35,14 @@ export default function Home() {
   const [qrImage, setQrImage] = useState("");
   const [count, setCount] = useState(0);
   const [done, setDone] = useState(false);
+  const [alert, setAlert] = useState({value: '', address: '', phone: ''})
+
   const changeElfc = ({ e }) => {
     console.log(elfc, e);
     setValue((elfc * e).toFixed(3));
   };
   const change = ({ e }) => {
-    console.log(e);
+
     setEvalue((e / elfc).toFixed(3));
   };
 
@@ -72,50 +74,68 @@ export default function Home() {
       .then(function (confirmationResult) {
         window.confirmationResult = confirmationResult;
       })
-      .then((res) => setProcess(33));
+      .then((res) => setProcess(50));
   };
   function getBase64Img(item) {
     return `data:image/png;base64,${item}`;
   }
 
-  const verify = () => {
-    console.log(code);
-    if (code !== undefined)
-      if (code.length == 6) {
-        confirmationResult
-          .confirm(code)
-          .then(async (res) => {
-            if (res.user && parseFloat(value) > 99) {
-              await axios
-                .post("http://18.167.46.29:5002/payment/qpay", {
-                  sender_invoice_no: "1234567",
-                  invoice_description: address == "" ? "string" : address,
-                  amount: parseFloat(value),
-                  paymentMethodId: 1,
-                  userId: "hjasdfkhu23rj",
-                })
-                .then(async (response) => {
-                  let json = JSON.parse(response.data.data);
+  const verify = async () => {
+    // console.log(code);
+    // if (code !== undefined)
+    //   if (code.length == 6) {
+        // confirmationResult
+        //   .confirm(code)
+        //   .then(async (res) => {
+          
+          if(value < 10) {
+            setAlert((alert) => ({...alert, value: 'value must be greater than 10 ', address: '', phone:''}))
+            return 
+          }
+          if(address == '') {
+            setAlert((alert) => ({...alert, address: 'address empty', value: '', phone: ''}))
 
-                  setInvoiceId(json.invoice_id);
-                  let base64img = getBase64Img(json.qr_image);
+            return 
+          }
+          let phoneRegex = /^[0-9][0-9]{6}[0-9]$/g
+          if(!phone.match(phoneRegex) ) {
+            setAlert((alert) => ({...alert, address: '', value: '', phone: 'invalid phonenumber'}))
+            return
+          }
+          
+          setAlert((alert) => ({...alert, address: '', value: '', phone: ''}))
+          console.log(value)
+            // if (parseFloat(value) > 99) {
+            //   await axios
+            //     .post("http://18.167.46.29:5002/payment/qpay", {
+            //       sender_invoice_no: "1234567",
+            //       invoice_description: address == "" ? "string" : address,
+            //       amount: parseFloat(value),
+            //       paymentMethodId: 1,
+            //       userId: "hjasdfkhu23rj",
+            //     })
+            //     .then(async (response) => {
+            //       let json = JSON.parse(response.data.data);
 
-                  setQrImage(base64img);
-                  setProcess(66);
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            }
-          })
-          .catch((err) => console.log(err));
-      }
+            //       setInvoiceId(json.invoice_id);
+            //       let base64img = getBase64Img(json.qr_image);
+
+            //       setQrImage(base64img);
+            //       setProcess(66);
+            //     })
+            //     .catch((err) => {
+            //       console.log(err);
+            //     });
+            // }
+          // })
+          // .catch((err) => console.log(err));
+      // }
   };
   const chargeWallet = async () => {
     await axios
       .post("https://tiny-admin.herokuapp.com/v1/admin/chargeWallet", {
         debitAddress: address,
-        amount: eValue,
+        amount: parseFloat(eValue),
         description: "string",
       })
       .then((rs) => {
@@ -146,7 +166,7 @@ export default function Home() {
   return (
     <VStack h={"100vh"} justifyContent="center">
       {process == 0 && (
-        <DefaultForm elfc={elfc} process={process}>
+        <DefaultForm elfc={elfc} process={process} alert={alert.value}>
           <HStack gap={3}>
             <ChildrenInput
               dh={"20px"}
@@ -180,20 +200,22 @@ export default function Home() {
               }
             </ChildrenInput>
           </HStack>
+          <Box>{alert.value && <Text ml={4} mt={2} color='red.500'>{alert.value}</Text>}</Box>
           <Box h={4} />
-          <DefaultInput lbl="Wallet address" fn={() => {}} />
+          <DefaultInput lbl="Wallet address" fn={() => {}} setValue={setAddress} value={address}  alert={alert.address} />
           <Box h={4} />
           <DefaultInput
             lbl="Phone"
             value={phone}
             setValue={setPhone}
+            alert={alert.phone}
             fn={() => {}}
           />
           <Box h={4} />
           <div id="recaptcha-container" />
-          <Box h={4} />
+          {/* <Box h={4} /> */}
 
-          <Checkbox
+          {/* <Checkbox
             spacing={4}
             fontSize={14}
             color="text.label"
@@ -209,7 +231,7 @@ export default function Home() {
             letterSpacing={"-0.05em"}
           >
             I read and accept <Link>Terms if use</Link>
-          </Checkbox>
+          </Checkbox> */}
           <Box h={4} />
           <Button
             variant={"unstyled"}
@@ -218,7 +240,7 @@ export default function Home() {
             color="white"
             fontWeight={400}
             h={16}
-            onClick={() => sendVerification()}
+            onClick={() => verify()}
           >
             NEXT
           </Button>
@@ -244,7 +266,7 @@ export default function Home() {
           </VStack>
         </DefaultForm>
       )}
-      {qrImage != "" && (
+      {qrImage != "" && process != 100 && (
         <DefaultForm elfc={elfc} process={process}>
           <VStack alignItems={"center"}>
             <Image src={qrImage} />
