@@ -3,8 +3,8 @@ const fonts = { mono: `'Menlo', monospace` };
 
 const breakpoints = {
   sm: "320px",
-  md: "768px",
-  lg: "960px",
+  md: "480px",
+  lg: "550px",
   xl: "1200px",
   "2xl": "1536px",
 };

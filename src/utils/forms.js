@@ -30,16 +30,18 @@ export const DefaultForm = ({
   setEvalue,
   changeElfc,
   eValue,
+  process,
 }) => {
+  
   return (
     <FormControl
       maxW={"560px"}
       shadow="0px 2px 4px rgba(0, 0, 0, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 4px 5px rgba(0, 0, 0, 0.07)"
       overflow="hidden"
-      
+      w={'95%'}
     >
       <Progress value={process} size="xs" colorScheme="pink" />
-      <FormLabel px={"40px"} py={"24px"}>
+      <FormLabel px={['10px','20px', '40px', '40px']} py={"24px"} >
         <HStack justifyContent={"space-between"}>
           <Box w="80px">
             <Image src="https://tiny-ivory.vercel.app/assets/img/tiny-logo.svg" />
@@ -71,7 +73,7 @@ export const ChildrenInput = ({
  
 }) => {
   return (
-    <HStack pl={3} py={2} bg={"bg.input"} borderRadius={12}>
+    <HStack pl={3} py={2} bg={"bg.input"} borderRadius={12} w='full' justifyContent={'space-between'}>
       <VStack alignItems={"start"}>
         <Text color={"text.label"} fontSize={13} fontWeight={600}>
           {lbl}
@@ -81,8 +83,9 @@ export const ChildrenInput = ({
             variant={"unstyled"}
             value={value}
             sx={{ margin: "0 !important" }}
+            maxW={['125px','180px','250px']}
             onChange={(e) => {
-              console.log(e)
+              
               setValue(e),
               changeElfc({e});
             }}
@@ -97,6 +100,7 @@ export const ChildrenInput = ({
             onChange={(e) => {
               setValue(e), change({e});
             }}
+            maxW={['125px','180px','250px', '120px']}
           >
             <NumberInputField fontSize={20} pr={0} />
           </NumberInput>

@@ -23,6 +23,7 @@ import {
   RecaptchaVerifier,
 } from "firebase/auth";
 import { CheckIcon } from "@chakra-ui/icons";
+import BeatLoader from "react-spinners/BeatLoader";
 export default function Home() {
   const [elfc, setElfc] = useState(0);
   const [value, setValue] = useState(0);
@@ -36,7 +37,7 @@ export default function Home() {
   const [count, setCount] = useState(0);
   const [done, setDone] = useState(false);
   const [alert, setAlert] = useState({value: '', address: '', phone: ''})
-
+  const [isLoading, setIsLoading] = useState(false)
   const changeElfc = ({ e }) => {
     console.log(elfc, e);
     setValue((elfc * e).toFixed(3));
@@ -51,19 +52,10 @@ export default function Home() {
 
   // Your web app's Firebase configuration
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsgXB1w7a8Cc-mP_1WuzcmQ0tBdNEJ1EA",
-    authDomain: "chargewallet-115f4.firebaseapp.com",
-    projectId: "chargewallet-115f4",
-    storageBucket: "chargewallet-115f4.appspot.com",
-    messagingSenderId: "538276493317",
-    appId: "1:538276493317:web:c93e21a47e91221044446c",
-    measurementId: "G-69DKRLXKD8",
-  };
+
 
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+
 
   const sendVerification = async () => {
     console.log(phone);
@@ -87,46 +79,56 @@ export default function Home() {
         // confirmationResult
         //   .confirm(code)
         //   .then(async (res) => {
-          
+          setIsLoading(true)
           if(value < 10) {
             setAlert((alert) => ({...alert, value: 'value must be greater than 10 ', address: '', phone:''}))
+            setIsLoading(false)
             return 
           }
           if(address == '') {
             setAlert((alert) => ({...alert, address: 'address empty', value: '', phone: ''}))
-
+            setIsLoading(false)
             return 
           }
           let phoneRegex = /^[0-9][0-9]{6}[0-9]$/g
-          if(!phone.match(phoneRegex) ) {
-            setAlert((alert) => ({...alert, address: '', value: '', phone: 'invalid phonenumber'}))
-            return
-          }
+          // if(!phone.match(phoneRegex) ) {
+          //   setAlert((alert) => ({...alert, address: '', value: '', phone: 'invalid phonenumber'}))
+          //   return
+          // }
           
           setAlert((alert) => ({...alert, address: '', value: '', phone: ''}))
-          console.log(value)
-            // if (parseFloat(value) > 99) {
-            //   await axios
-            //     .post("http://18.167.46.29:5002/payment/qpay", {
-            //       sender_invoice_no: "1234567",
-            //       invoice_description: address == "" ? "string" : address,
-            //       amount: parseFloat(value),
-            //       paymentMethodId: 1,
-            //       userId: "hjasdfkhu23rj",
-            //     })
-            //     .then(async (response) => {
-            //       let json = JSON.parse(response.data.data);
 
-            //       setInvoiceId(json.invoice_id);
-            //       let base64img = getBase64Img(json.qr_image);
+            if (parseFloat(value) > 9) {
+              await axios.get(`https://tiny-admin.herokuapp.com/v1/wallet/tiny/${address}`).then((res) => {}).catch((err) => {
+                if(err.response.data.statusCode == 400) {
+                  setAlert((alert) => ({...alert, address: 'Address not found'}))
+                  setIsLoading(false)
+                  return
+                }
+              })
+              await axios
+                .post("http://18.167.46.29:5002/payment/qpay", {
+                  sender_invoice_no: "1234567",
+                  invoice_description: address == "" ? "string" : address,
+                  amount: parseFloat(value),
+                  paymentMethodId: 1,
+                  userId: "hjasdfkhu23rj",
+                })
+                .then(async (response) => {
+                  let json = JSON.parse(response.data.data);
 
-            //       setQrImage(base64img);
-            //       setProcess(66);
-            //     })
-            //     .catch((err) => {
-            //       console.log(err);
-            //     });
-            // }
+                  setInvoiceId(json.invoice_id);
+                  let base64img = getBase64Img(json.qr_image);
+
+                  setQrImage(base64img);
+                  setIsLoading(false)
+                  setProcess(66);
+                  
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+            }
           // })
           // .catch((err) => console.log(err));
       // }
@@ -159,15 +161,16 @@ export default function Home() {
     if (data.data.ELFC != undefined) {
       setElfc(data.data.ELFC);
     }
+    console.log(process)
   };
   useEffect(() => {
     getData();
-  }, [process]);
+  }, [process, isLoading]);
   return (
     <VStack h={"100vh"} justifyContent="center">
       {process == 0 && (
-        <DefaultForm elfc={elfc} process={process} alert={alert.value}>
-          <HStack gap={3}>
+        <DefaultForm elfc={elfc} process={33} alert={alert.value}>
+          <HStack gap={3} flexDir={['column', 'column', 'column','row']}>
             <ChildrenInput
               dh={"20px"}
               lbl="You'll give"
@@ -177,7 +180,7 @@ export default function Home() {
               type="value"
             >
               {
-                <Select border={"none"} p={0} sx={{ p: "0 !important" }}>
+                <Select border={"none"} p={0} sx={{ p: "0 !important" }} w='80px'>
                   <option value="">MNT</option>
                 </Select>
               }
@@ -192,8 +195,8 @@ export default function Home() {
               type="elfc"
             >
               {
-                <VStack pr={8}>
-                  <Text color={"text.label"} fontWeight={500} fontSize={"18px"}>
+                <VStack pr={[4,4,4, 8]} pl={[1,2,2, 8]}  >
+                  <Text color={"text.label"} fontWeight={500} fontSize={"18px"} w={['64px', '64px', '64px', 'auto']}>
                     ELFC
                   </Text>
                 </VStack>
@@ -203,16 +206,16 @@ export default function Home() {
           <Box>{alert.value && <Text ml={4} mt={2} color='red.500'>{alert.value}</Text>}</Box>
           <Box h={4} />
           <DefaultInput lbl="Wallet address" fn={() => {}} setValue={setAddress} value={address}  alert={alert.address} />
-          <Box h={4} />
+          {/* <Box h={4} />
           <DefaultInput
             lbl="Phone"
             value={phone}
             setValue={setPhone}
             alert={alert.phone}
             fn={() => {}}
-          />
+          /> */}
           <Box h={4} />
-          <div id="recaptcha-container" />
+          {/* <div id="recaptcha-container" /> */}
           {/* <Box h={4} /> */}
 
           {/* <Checkbox
@@ -235,6 +238,13 @@ export default function Home() {
           <Box h={4} />
           <Button
             variant={"unstyled"}
+            textAlign='center'
+            isLoading={address == '' || value < 9}
+            _hover={{bg: 'bg.btn'}}
+            display='flex'
+            justifyContent={'center'}
+            spinner={isLoading ? <BeatLoader size={8} color='white' margin={'auto'} /> : false}
+            loadingText={isLoading ? false : 'NEXT'}
             w="full"
             bg={"bg.btn"}
             color="white"
@@ -249,7 +259,7 @@ export default function Home() {
         </DefaultForm>
       )}
       {process == 33 && (
-        <DefaultForm elfc={elfc} process={process}>
+        <DefaultForm elfc={elfc} process={66}>
           <VStack alignItems={"start"}>
             <Text fontSize={28}>Verify Your Phone</Text>
             <Box h={4} />
@@ -267,7 +277,7 @@ export default function Home() {
         </DefaultForm>
       )}
       {qrImage != "" && process != 100 && (
-        <DefaultForm elfc={elfc} process={process}>
+        <DefaultForm elfc={elfc} process={99}>
           <VStack alignItems={"center"}>
             <Image src={qrImage} />
             <Button onClick={() => checkBill()}>Paid</Button>
