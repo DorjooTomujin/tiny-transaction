@@ -239,12 +239,13 @@ export default function Home() {
           <Button
             variant={"unstyled"}
             textAlign='center'
-            isLoading={address == '' || value < 9}
+            isLoading={isLoading}
             _hover={{bg: 'bg.btn'}}
             display='flex'
             justifyContent={'center'}
             spinner={isLoading ? <BeatLoader size={8} color='white' margin={'auto'} /> : false}
             loadingText={isLoading ? false : 'NEXT'}
+            disabled={address == '' || value < 9}
             w="full"
             bg={"bg.btn"}
             color="white"
