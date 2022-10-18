@@ -263,7 +263,7 @@ export default function Home() {
           <VStack alignItems={"start"}>
             <Text fontSize={28}>Verify Your Phone</Text>
             <Box h={4} />
-            <Text>We've sent a verification code to {phone}</Text>
+            <Text>We&#39;ve sent a verification code to {phone}</Text>
             <Box h={4} />
 
             <DefaultInput
